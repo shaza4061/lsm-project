@@ -21,4 +21,4 @@ benchmark: hash_table.o benchmark.o
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 clean:
-	rm -f main test benchmark *.o *.bin
+	rm -f main test benchmark *.exe *.o *.bin
