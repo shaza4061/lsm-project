@@ -237,7 +237,75 @@ void printLinkedList(node* nodes)
     }
 }
 
-hashTable* range(lsm* tree, int from, int to)
+hashTable* range(lsm* tree, int from, int to) {
+	if(tree->max_thread==SINGLE_THREAD) {
+		return single_thread_range(tree,from,to);
+	} else {
+		return multi_thread_range(tree,from,to);
+	}
+}
+
+hashTable* single_thread_range(lsm* tree, int from, int to)
+{
+    int total_search_items = to - from;
+    int total_found_items = 0;
+    int level_size = tree->max_level;
+    // init hashtable to store result
+    hashTable* result = createTable(total_search_items);
+    // Search in memory first
+    for(int32_t key = from; key < to; key++) {
+	pair value = look(tree->l0, key);
+	// add to result table if found
+	if(value.state != UNKNOWN) {
+	    node* newNode = createNode(value.key, value.value, value.state);
+	    add(result, newNode);
+	    total_found_items++;
+	}
+    }
+
+    // if there's still item needs to be found
+    // Create thread to search for candidate block
+    // at each level
+    if(total_found_items != total_search_items) {
+	linked_list** page_num_list = calloc(level_size, sizeof(linked_list*) + 2);
+
+	for(int current_level = 0; current_level < level_size; current_level++) {
+
+	    void* temp = NULL;
+	    search_arg* fence_ptr_search_arg = malloc(sizeof(search_arg));
+	    fence_ptr_search_arg->level = current_level;
+	    fence_ptr_search_arg->range_from = from;
+	    fence_ptr_search_arg->range_to = to;
+
+	    // Search the fence pointer
+	    temp = search_level_for_range(fence_ptr_search_arg);
+	    page_num_list[current_level] = (linked_list*)temp;
+	    linked_list* page = page_num_list[current_level];
+
+	    // if found pages with possible values and number of found items is lesser than expected
+	    while(page != NULL && (total_found_items < total_search_items)) {
+		// Search the disk based on possible page location
+		char* filename = getFileName(current_level);
+		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
+
+		search_arg* page_search_arg = malloc(sizeof(search_arg));
+		page_search_arg->range_from = from;
+		page_search_arg->range_to = to;
+		page_search_arg->level = current_level;
+		page_search_arg->disk_page = disk_page;
+		page_search_arg->page_num = page->value;
+		page_search_arg->result = result;
+
+		search_page_for_range(page_search_arg);
+		page = (linked_list*)page->next;
+	    }
+	}
+    }
+
+    return result;
+}
+
+hashTable* multi_thread_range(lsm* tree, int from, int to)
 {
     int level_size = tree->max_level;
     int total_search_items = to - from;
@@ -257,42 +325,58 @@ hashTable* range(lsm* tree, int from, int to)
     }
 
     // if there's still item needs to be found
-    // Create thread to search for candidate block
-    // at each level
+
     if(total_found_items != total_search_items) {
 	pthread_t* search_threads = malloc(sizeof(pthread_t) * tree->max_thread);
 	linked_list** page_num_list = calloc(level_size, sizeof(linked_list*) + 2);
-
-	// Creating threads to scan at every LSM level for possible page with keys
+	int thread_still_running = FALSE;
+	int scanning_in_progress = TRUE;
+	int current_level = 0;
 	int thread_count = 0;
-	for(int current_level = 0; current_level < level_size; current_level++) {
-
-	    search_arg* arg = malloc(sizeof(search_arg));
-	    arg->level = current_level;
-	    arg->id = thread_count;
-	    arg->range_from = from;
-	    arg->range_to = to;
-	    if(pthread_create(&search_threads[thread_count], NULL, search_level_for_range, arg) != 0) {
-		printf("%s", ERROR_CREATING_THREAD);
-	    }
-	    thread_count++;
-
-	    if(thread_count == max_thread_count) {
-		// Waiting for all threads to complete
-		for(int thread_level = current_level - thread_count + 1; thread_level <= current_level;
-		    thread_level++) {
+	
+	//Create a lookup table to store thread information
+	int *thread_lookup_table = malloc(max_thread_count * sizeof(int *)); 
+	
+	// Create thread to search for candidate block
+	// at each level
+	while(thread_still_running || scanning_in_progress) {
+	    // if all thread is used, wait for them to complete
+	    if(thread_count == max_thread_count || !scanning_in_progress) {
+		for(int thread_num = 0; thread_num < thread_count; thread_num++) {
 		    void* temp = NULL;
-		    pthread_join(search_threads[thread_level], &temp);
-		    page_num_list[thread_level] = (linked_list*)temp;
+		    pthread_join(search_threads[thread_num], &temp);
+			int level = thread_lookup_table[thread_num];
+		    page_num_list[level] = (linked_list*)temp;
 		}
+		// reset thread count
 		thread_count = 0;
+		thread_still_running = FALSE;
+	    }
+	    if(current_level < level_size) {
+		search_arg* arg = malloc(sizeof(search_arg));
+		arg->level = current_level;
+		arg->id = thread_count;
+		arg->range_from = from;
+		arg->range_to = to;
+		
+		//register thread in thread lookup table
+		thread_lookup_table[thread_count] = current_level;
+		if(pthread_create(&search_threads[thread_count], NULL, search_level_for_range, arg) != 0) {
+		    printf("%s", ERROR_CREATING_THREAD);
+		}
+		current_level++;
+		thread_count++;
+		thread_still_running = TRUE;
+	    } else {
+		scanning_in_progress = FALSE;
 	    }
 	}
 
+	//For each level, we retrieve the potential page and perform search
 	for(int level = 0; level < level_size; level++) {
 	    char* filename = getFileName(level);
 	    linked_list* page = page_num_list[level];
-	    while(page != NULL && (total_found_items < total_search_items)) {
+	    while(page != NULL) {
 		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
 
 		// split the range and search from page
@@ -306,14 +390,12 @@ hashTable* range(lsm* tree, int from, int to)
 		else
 		    to_key = from_key + increment;
 
-		// add 1 for excess
+		// add 1 for odd number of items
 		if(total_search_items % max_thread_count != 0) {
 		    total_loop++;
 		}
 
 		for(int count = 0; count < max_thread_count; count++) {
-		    printf("count = %d, total_loop = %d\n", count, total_loop);
-
 		    search_arg* arg = malloc(sizeof(search_arg));
 		    arg->range_from = from_key;
 		    arg->range_to = to_key;
@@ -322,7 +404,7 @@ hashTable* range(lsm* tree, int from, int to)
 		    arg->disk_page = disk_page;
 		    arg->page_num = page->value;
 		    arg->result = result;
-		    printf("arg->range_from = %d, arg->range_to = %d\n", arg->range_from, arg->range_to);
+
 		    if(pthread_create(&search_threads[count], NULL, search_page_for_range, arg) != 0) {
 			printf("%s", ERROR_CREATING_THREAD);
 		    }
@@ -334,22 +416,14 @@ hashTable* range(lsm* tree, int from, int to)
 			to_key += increment;
 		}
 
-printf("Join back the thread\n");
 		// Join back the thread
-		for(int count = 0; count < total_loop; count++){
-			void* temp = NULL;
-			pthread_join(search_threads[count], &temp);
-			node* newNode = (node*)temp;
-			while(newNode!=NULL) {
-				printf("RESULT: [%d:%d]",newNode->keyValue.key,newNode->keyValue.value);
-				add(result,newNode);
-				newNode = (node*)newNode->next;
-			}
-			printf("\n");
+		for(int count = 0; count < max_thread_count; count++) {
+		    pthread_join(search_threads[count], NULL);
 		}
 		page = (linked_list*)page->next;
 	    }
 	}
+
 	// release page_num_list memory
 	for(int k = 0; k < level_size; k++) {
 	    linked_list* head = page_num_list[k];
@@ -372,38 +446,33 @@ void* search_page_for_range(void* arguments)
     int to = args->range_to;
     int level = args->level;
     int page_num = args->page_num;
-	int id = args->id;
     run* page = args->disk_page;
     hashTable* result = args->result;
-	node* result_nodes = NULL;
-    printf("THREAD# %d started. From %d To %d\nS", id, from, to);
-    
+    node* result_nodes = NULL;
 
     for(uint32_t i = 0; i < page->header.pairCount; i++) {
-		printf("THREAD# %d : looping through page\n",id);
 	for(int key = from; key <= to; key++) {
-		printf("THREAD# %d : key %d level %d page %d\n",id,key, level, page_num);
+	    // printf("Thread#%d: Searching for key %d\n",id,key);
 	    pair item = look(result, key);
 	    // if key is not in current result and match with bloom filter
 	    if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
 		if(key == page->keyValue[i].key) {
 		    node* newNode = createNode(page->keyValue[i].key, page->keyValue[i].value, page->keyValue[i].state);
-			printf("Found \n");
-			if (result_nodes==NULL){
-				result_nodes = newNode;
-			}else {
-				result_nodes->next = (struct node*) newNode;
-				result_nodes = (node*) result_nodes->next;
-			}
-//		    add(result, newNode);
+		    if(result_nodes == NULL) {
+			result_nodes = newNode;
+		    } else {
+			result_nodes->next = (struct node*)newNode;
+			result_nodes = (node*)result_nodes->next;
+		    }
+		    add(result, newNode);
 		}
 	    }
 	}
     }
-	args->result = NULL;
-	args->disk_page = NULL;
-	free(args);
-    return (void*)result_nodes;
+    args->result = NULL;
+    args->disk_page = NULL;
+    free(args);
+    return (void*)NULL;
 }
 
 void* search_level_for_range(void* arguments)
@@ -420,7 +489,6 @@ void* search_level_for_range(void* arguments)
 
     for(int highest_page_num = max_page_num; highest_page_num >= 0; highest_page_num--) {
 	for(int key = from; key < to; key++) {
-
 	    if(key >= g_lsm_fence_ptr[level].page[highest_page_num].min &&
 	        key <= g_lsm_fence_ptr[level].page[highest_page_num].max) {
 		if(contains(level, highest_page_num, key) == TRUE) {
@@ -442,7 +510,6 @@ void* search_level_for_range(void* arguments)
 	    }
 	}
     }
-
     return (void*)list;
 }
 

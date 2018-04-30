@@ -8,7 +8,11 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="test_range.c"/>
+    <File Name="test_singlethreaded_lsm.c"/>
+    <File Name="test.c"/>
+    <File Name="test_multithreaded_lsm.c"/>
+    <File Name="test_single_thread_range.c"/>
+    <File Name="test_multi_thread_range.c"/>
     <File Name="fileutil.c"/>
     <File Name="constant.h"/>
     <File Name="fileutil.h"/>
@@ -20,7 +24,6 @@
     <File Name="bloom.c"/>
     <File Name="bloom.h"/>
     <File Name="test.h"/>
-    <File Name="test.c"/>
     <File Name="hasht.c"/>
     <File Name="hasht.h"/>
     <File Name="node.h"/>
@@ -42,7 +45,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="-b 256 -l 5 -r 6" UseSeparateDebugArgs="no" DebugArguments="-b 256 -l 5 -r 6" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="-b 2 -l 6 -r 3" UseSeparateDebugArgs="no" DebugArguments="-b 2 -l 6 -r 3" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>

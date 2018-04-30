@@ -16,9 +16,13 @@ hashTable* createTable(int32_t size)
 void add(hashTable* t, node* newNode)
 {
     int pos = hashCode(t, newNode->keyValue.key);
-    node* list = t->bucket[pos];
-    newNode->next = (struct node*)list;
-    t->bucket[pos] = newNode;
+	if (t->bucket[pos] == NULL) {
+		t->bucket[pos] = newNode;
+	} else {
+		node* list = t->bucket[pos];
+		newNode->next = (struct node*)list;
+		t->bucket[pos] = newNode;
+	}  
 }
 
 uint32_t hashCode(hashTable* t, int32_t key)

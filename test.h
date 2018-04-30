@@ -1,3 +1,5 @@
+#include "lsm.h"
+
 typedef int keyType;
 typedef int valType;
-int runTest(lsm *tree);
+void runTest(lsm *tree);

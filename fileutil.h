@@ -6,6 +6,7 @@
 #include "node.h"
 #include "constant.h"
 #include <string.h>
+#define MAX_DATA_PATH 5
 
 typedef struct runHeader_t {
 	uint32_t pairCount;
@@ -18,9 +19,20 @@ typedef struct run_t {
 	pair* keyValue;
 }run;
 
+typedef struct level_data_path_t {
+	int from_level;
+	int to_level;
+	char path[50];
+}level_data_path;
+
+
+
 char * getFileName(uint32_t level_n);
 run *read_a_page(char *filename,uint32_t pageNum, uint32_t run_size);
 void merge_level(int fromLevel, int toLevel, uint32_t run_size);
 int append_to_file(char* filename,runHeader header, node* list);
+void data_path_add(int from_level, int to_level, char path[]);
+char* data_path_get(int level);
+void data_path_init();
 
 #endif /* FILEUTIL_H */

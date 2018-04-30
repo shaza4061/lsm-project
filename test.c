@@ -1,16 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-#include "lsm.h"
 #include "test.h"
 
-// This code is designed to test the correctness of your implementation.
-// You do not need to significantly change it.
-// Compile and run it in the command line by typing:
-// make test; ./test
-
-int runTest(lsm* tree)
+void runTest(lsm* tree)
 {
     int num_tests = 512;
     keyType keys[] = { 18504, 15250, 27869, 3871, 10005, 14011, 10819, 3638, 22547, 10349, 1193, 27065, 27112, 15791,
@@ -85,6 +78,8 @@ int runTest(lsm* tree)
 	put(tree, keys[i], values[i]);
 	printf("\t%d: (%d -> %d) \n", i, keys[i], values[i]);
     }
+	
+	printTree(tree);
 
     for(int i = 0; i < num_tests; i += 1) {
 	int index = rand() % num_tests;
@@ -93,7 +88,7 @@ int runTest(lsm* tree)
 	if((value.state == VALID && value.value != values[index]) || value.state != VALID) {
 	    printf(
 	        "Test failed with key %d. Got value %d. Expected value %d.\n", target_key, value.value, values[index]);
-	    return 1;
+	    exit(EXIT_FAILURE);
 	}
 	printf("Test key:%d. PASSED\n", target_key);
     }
@@ -107,7 +102,7 @@ int runTest(lsm* tree)
 	pair value = get(tree, target_key);
 	if(value.state == VALID) {
 	    printf("Test failed with key %d. Expected it to be erased, but got %d.\n", target_key, value.value);
-	    return 1;
+	    exit(EXIT_FAILURE);
 	}
     }
 
@@ -116,16 +111,4 @@ int runTest(lsm* tree)
     printTree(tree);
     free(tree);
     printf("All tests have been successfully passed.\n");
-    return 0;
-}
-
-int main()
-{
-    int run_size = 2;
-    int level_ratio = 3;
-    int level_size = 6;
-
-    lsm* tree = createLSMTree(run_size, level_size, level_ratio);
-    runTest(tree);
-    return 0;
 }

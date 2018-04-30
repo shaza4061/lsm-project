@@ -1,4 +1,5 @@
 #include "lsm.h"
+#include "fileutil.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,35 +15,109 @@ int main(int argc, char** argv)
     int run_size = DEFAULT_BUCKET_SIZE;
     int level_ratio = DEFAULT_LSM_LEVEL_RATIO;
     int level_size = DEFAULT_LSM_LEVEL;
-	int thread_size = DEFAULT_THREAD_SIZE;
+    int thread_size = DEFAULT_THREAD_SIZE;
     int c;
     opterr = 0;
 
-    while((c = getopt(argc, argv, "sb:l:r:t:")) != -1)
+    while((c = getopt(argc, argv, "sb:l:r:t:d:")) != -1)
 	switch(c) {
-	case 'b':
-	    run_size = atoi(optarg);
-		if (run_size > MAX_LSM_RUN_SIZE) {
-			printf("ERROR: Run size cannot be bigger than %d. Terminating...", MAX_LSM_RUN_SIZE);
-			exit(1);
+	case 'd': {
+		data_path_init();
+	    char file_path[5][100];
+	    int row = 0;
+	    char* path_config = strtok(optarg, ",");
+
+	    while(path_config != NULL) {
+		strcpy(file_path[row], path_config);
+		row++;
+		path_config = strtok(NULL, "-");
+		
+		if(row >= MAX_DATA_PATH) {
+		    printf("Number of  path define cannot exceed %d\n", MAX_DATA_PATH);
+		    exit(EXIT_FAILURE);
 		}
+	    }
+
+	    for(int i = 0; i < row; i++) {
+		char* level_config = strtok(file_path[i], "=");
+		while(level_config != NULL) {
+		    char code = level_config[0];
+		    int length = strlen(level_config);
+		    if(code == 'r') {
+			char strFromLevel[5] = "";
+			char strToLevel[5] = "";
+			char path[50] = "";
+			char temp1[50]="";
+			int intFromLevel, intToLevel,strLength;
+			strLength = strlen(level_config);
+			strncpy(temp1, level_config+1, strLength);
+//			temp1[strlen(level_config)] = '\0';
+			level_config = strtok(NULL, "=");
+			strncpy(path,level_config,strlen(level_config));
+			const char* ptr = strchr(temp1, '-');
+			strncpy(strFromLevel, temp1, ptr - temp1);
+			strncpy(strToLevel, ptr + 1, strlen(temp1) - (ptr - temp1 + 1));
+			intFromLevel = atoi(strFromLevel);
+			intToLevel = atoi(strToLevel);
+			data_path_add(intFromLevel,intToLevel,path);
+			break;
+
+		    } else if(code == '+') {
+			char strLevel[5] = "";
+			char path[50] = "";
+			int intLevel;
+			strncpy(strLevel, level_config + 1, length - 1);
+//			strLevel[length] = '\0';
+			intLevel = atoi(strLevel);
+			level_config = strtok(NULL, "=");
+			strncpy(path, level_config, strlen(level_config));
+			data_path_add(intLevel,100,path);
+			break;
+		    } else if(code == 's') {
+			char strLevel[5] = "";
+			char path[50] = "";
+			int intLevel;
+			strncpy(strLevel, level_config + 1, length - 1);
+			strLevel[length] = '\0';
+			intLevel = atoi(strLevel);
+			level_config = strtok(NULL, "=");
+			strncpy(path, level_config, strlen(level_config));
+			data_path_add(intLevel,intLevel,path);
+			printf("Level %d data is saved at %s\n", intLevel, path);
+			break;
+		    } else {
+			printf("Invalid operator %c. Expected 'r','s', or '+'\n", code);
+			exit(EXIT_FAILURE);
+		    }
+		}
+	    }
 	    break;
+	}
+
+	case 'b': {
+	    run_size = atoi(optarg);
+	    if(run_size > MAX_LSM_RUN_SIZE) {
+		printf("ERROR: Run size cannot be bigger than %d. Terminating...", MAX_LSM_RUN_SIZE);
+		exit(1);
+	    }
+	    break;
+	}
 	case 'l':
 	    level_size = atoi(optarg);
-		if (level_size%2 != 0) {
-			printf("ERROR: Level size must be an even number. Terminating...");
-			exit(1);
-		}
+	    if(level_size % 2 != 0) {
+		printf("ERROR: Level size must be an even number. Terminating...");
+		exit(1);
+	    }
 	    break;
 	case 'r':
 	    level_ratio = atoi(optarg);
 	    break;
 	case 't':
 	    thread_size = atoi(optarg);
-		if (thread_size%2 != 0) {
-			printf("ERROR: Thread size must be an even number. Terminating...");
-			exit(1);
-		}
+	    if(thread_size % 2 != 0) {
+		printf("ERROR: Thread size must be an even number. Terminating...");
+		exit(1);
+	    }
 	    break;
 	case 's':
 	    silent_mode = 1;
@@ -65,7 +140,7 @@ int main(int argc, char** argv)
 	printf("**************************\n");
     }
 
-    tree = createLSMTree(run_size, level_size, level_ratio);
+    tree = createLSMTree(run_size, level_size, level_ratio, thread_size);
 
     char command[50] = "";
     int chr;
@@ -142,20 +217,22 @@ void parse_command(char command[])
 	break;
     }
     case 'l': {
+	int count = 0;
 	printf("load %s\n", tokens[1]);
 	FILE* read_ptr = fopen(tokens[1], READ_BINARY);
 	if(read_ptr == NULL) {
 	    fprintf(stderr, ERROR_OPENING_FILE_FOR_READING, tokens[1]);
 	    exit(EXIT_FAILURE);
 	}
-
 	while(!feof(read_ptr)) {
 	    int key, value;
 	    fread(&key, sizeof(int), 1, read_ptr);
 	    fread(&value, sizeof(int), 1, read_ptr);
 	    put(tree, key, value);
+	    count++;
 	}
 	fclose(read_ptr);
+	printf("%d keys loaded\n", count);
 	break;
     }
     case 's': {

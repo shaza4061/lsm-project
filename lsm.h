@@ -5,14 +5,16 @@
 #include <stdlib.h>
 #include "hasht.h"
 #include "fileutil.h"
+
 #define DEFAULT_LSM_LEVEL_RATIO 3 
-#define DEFAULT_LSM_LEVEL 6 
+#define DEFAULT_LSM_LEVEL 100 
 #define MAX_LSM_RUN_SIZE 10 
 #define DEFAULT_THREAD_SIZE 4
 #define TRUE 1
 #define FALSE 0
 #define EMPTY_VALUE -0
-
+#define SINGLE_THREAD 1
+#define MULTI_THREAD 0
 
 typedef struct lsm_t {
 	hashTable* l0;
@@ -55,6 +57,8 @@ void flush_to_disk(lsm* tree, hashTable* table, uint32_t table_size) ;
 runHeader merge_sort(node** buckets, int size, node** result);
 void printLinkedList(node* nodes);
 hashTable* range(lsm* tree, int from, int to);
+hashTable* single_thread_range(lsm* tree, int from, int to);
+hashTable* multi_thread_range(lsm* tree, int from, int to);
 void run_tiered_compaction(lsm* tree);
 void printTree(lsm* tree);
 char convert_bucket_state_to_char(int int_state);
