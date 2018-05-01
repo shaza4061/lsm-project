@@ -15,6 +15,7 @@
 #define EMPTY_VALUE -0
 #define SINGLE_THREAD 1
 #define MULTI_THREAD 0
+#define DEFAULT_FALSE_POSITIVE_RATE 0.05
 
 typedef struct lsm_t {
 	hashTable* l0;
@@ -49,7 +50,7 @@ typedef struct search_arg_t {
 //global fence pointer variable
 fencePtr *g_lsm_fence_ptr;
 
-lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_size);
+lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_size, double false_positive_rate);
 void put(lsm *tree,int32_t key,int32_t val);
 pair get(lsm *tree,int32_t key);
 void erase(lsm *tree,int32_t key);

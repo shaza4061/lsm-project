@@ -10,7 +10,7 @@ uint32_t mod_hash(uint32_t a, uint32_t N) {
 }
 
 uint32_t bin_hash(uint32_t a, uint32_t N) {
-	return  abs(a)/(UINT32_MAX/N);
+	return  abs(a)/(INT32_MAX/N);
 }
 
 uint32_t midsquare_hash(uint32_t a) {
@@ -32,4 +32,10 @@ uint32_t midsquare_hash(uint32_t a) {
 
 	sscanf(key, "%d", &result);
 	return result;
+}
+
+// Based on http://lcm.csa.iisc.ernet.in/dsa/node44.html
+uint32_t multiplication_hash(uint32_t key, uint32_t N) {
+	const double A = 0.6180339887;// (Golden Ratio)
+	return floor(fmod(((double)key*A),1.0)*N);
 }

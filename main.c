@@ -16,10 +16,11 @@ int main(int argc, char** argv)
     int level_ratio = DEFAULT_LSM_LEVEL_RATIO;
     int level_size = DEFAULT_LSM_LEVEL;
     int thread_size = DEFAULT_THREAD_SIZE;
+	double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
     int c;
     opterr = 0;
 
-    while((c = getopt(argc, argv, "sb:l:r:t:d:")) != -1)
+    while((c = getopt(argc, argv, "sb:l:r:t:d:f:")) != -1)
 	switch(c) {
 	case 'd': {
 		data_path_init();
@@ -49,9 +50,9 @@ int main(int argc, char** argv)
 			char path[50] = "";
 			char temp1[50]="";
 			int intFromLevel, intToLevel,strLength;
+			
 			strLength = strlen(level_config);
 			strncpy(temp1, level_config+1, strLength);
-//			temp1[strlen(level_config)] = '\0';
 			level_config = strtok(NULL, "=");
 			strncpy(path,level_config,strlen(level_config));
 			const char* ptr = strchr(temp1, '-');
@@ -66,13 +67,14 @@ int main(int argc, char** argv)
 			char strLevel[5] = "";
 			char path[50] = "";
 			int intLevel;
+			
 			strncpy(strLevel, level_config + 1, length - 1);
-//			strLevel[length] = '\0';
 			intLevel = atoi(strLevel);
 			level_config = strtok(NULL, "=");
 			strncpy(path, level_config, strlen(level_config));
 			data_path_add(intLevel,100,path);
 			break;
+			
 		    } else if(code == 's') {
 			char strLevel[5] = "";
 			char path[50] = "";
@@ -85,6 +87,7 @@ int main(int argc, char** argv)
 			data_path_add(intLevel,intLevel,path);
 			printf("Level %d data is saved at %s\n", intLevel, path);
 			break;
+			
 		    } else {
 			printf("Invalid operator %c. Expected 'r','s', or '+'\n", code);
 			exit(EXIT_FAILURE);
@@ -109,6 +112,8 @@ int main(int argc, char** argv)
 		exit(1);
 	    }
 	    break;
+	case 'f':
+		false_positive_rate = atof(optarg);
 	case 'r':
 	    level_ratio = atoi(optarg);
 	    break;
@@ -137,10 +142,11 @@ int main(int argc, char** argv)
 	printf("Tree height:%d\n", level_size);
 	printf("Ratio size:%d\n", level_ratio);
 	printf("Thread count:%d\n", thread_size);
+	printf("Bloom False Positive Rate:%d%%\n",(int)false_positive_rate*100);
 	printf("**************************\n");
     }
 
-    tree = createLSMTree(run_size, level_size, level_ratio, thread_size);
+    tree = createLSMTree(run_size, level_size, level_ratio, thread_size,false_positive_rate);
 
     char command[50] = "";
     int chr;

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_size)
+lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_size, double false_positive_rate)
 {
     lsm* tree = (lsm*)malloc(sizeof(lsm));
     tree->l0 = createTable(bucket_size);
@@ -16,21 +16,38 @@ lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_s
     tree->max_thread = thread_size;
     tree->l0->currSize = 0;
     g_lsm_fence_ptr = malloc(max_level * sizeof(fencePtr));
-    g_bloom_table = malloc(max_level * sizeof(int*));
+    g_bloom_filter_ptr = malloc(max_level * sizeof(bloom_filter));
+	
     for(int i = 0; i < max_level; i++) {
 	int max_page_size = bucket_size * level_ratio * ((int)pow((double)level_ratio, i));
+	int filter_size = ceil((bucket_size * log(false_positive_rate)) / log(1 / pow(2, log(2))));
+	
 	g_lsm_fence_ptr[i].curr_page_size = 0;
 	g_lsm_fence_ptr[i].max_page_size = max_page_size;
 	g_lsm_fence_ptr[i].page = malloc(max_page_size * (sizeof(runHeader) + 2));
-	g_bloom_table[i] = malloc(max_page_size * sizeof(bloom_type));
+	g_bloom_filter_ptr[i].page = malloc(max_page_size * (sizeof(bloom_filter_bitmap) + 2));
+	g_bloom_filter_ptr[i].filter_size = filter_size;
 
 	for(int j = 0; j < max_page_size; j++) {
 	    g_lsm_fence_ptr[i].page[j].pairCount = 0;
 	    g_lsm_fence_ptr[i].page[j].min = 0;
 	    g_lsm_fence_ptr[i].page[j].max = 0;
-	    g_bloom_table[i][j] = 0x0;
+		g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size/8,sizeof(bloom_type));
+//		memset(g_bloom_filter_ptr[i].page[j].bitmap,0,DEFAULT_FILTER_SIZE);
 	}
     }
+/**	
+	//test bloom filter
+	for(int row = 0;row<max_level;row++){
+		int max_col = g_lsm_fence_ptr[row].max_page_size;
+		for(int col = 0; col<max_col;col++){
+			for(int bloom_block =0;bloom_block<DEFAULT_FILTER_SIZE;bloom_block++){
+				printf("Accessing row = %d, col= %d, bloom_block[%d]\n",row,col,bloom_block);
+				printf("%d\n",g_bloom_table[row][col][bloom_block]);	
+				}
+			}
+		}
+**/
 
     return tree;
 }
@@ -564,11 +581,11 @@ char convert_bucket_state_to_char(int int_state)
     return bucket_status;
 }
 
-void printBloomTable(lsm* tree)
-{
-    for(int i = 0; i < (int)tree->max_level; i++) {
-	for(int j = 0; j < (int)g_lsm_fence_ptr[i].curr_page_size; j++) {
-	    printf("bloom[%d][%d] = %" PRIu32 "\n", i, j, g_bloom_table[i][j]);
-	}
-    }
-}
+//void printBloomTable(lsm* tree)
+//{
+//    for(int i = 0; i < (int)tree->max_level; i++) {
+//	for(int j = 0; j < (int)g_lsm_fence_ptr[i].curr_page_size; j++) {
+//	    printf("bloom[%d][%d] = %" PRIu32 "\n", i, j, g_bloom_table[i][j]);
+//	}
+//    }
+//}

@@ -19,7 +19,7 @@ void runRangeTest(lsm* tree)
 	put(tree, keys[i], values[i]);
 	printf("\t(%d -> %d) \n", keys[i], values[i]);
     }
-    printBloomTable(tree);
+//    printBloomTable(tree);
 
     int from = 3500;
     int to = 3700;
@@ -58,14 +58,15 @@ void runRangeTest(lsm* tree)
     printf("PASS\n");
     free(result);
 }
-int mainD()
+int main()
 {
     int run_size = 2;
     int level_ratio = 3;
     int level_size = 6;
     int thread_size = 4;
+	double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
 
-    lsm* tree = createLSMTree(run_size, level_size, level_ratio, thread_size);
+    lsm* tree = createLSMTree(run_size, level_size, level_ratio, thread_size,false_positive_rate);
 	printf("Testing single-threaded range scan");
     runRangeTest(tree);
     return 0;

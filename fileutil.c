@@ -79,7 +79,7 @@ void merge_level(int fromLevel, int toLevel, uint32_t run_size)
     remove(fromFileName);
     // reset fence pointer of merged level
     g_lsm_fence_ptr[fromLevel].curr_page_size = 0;
-    reset_bloom_table_row(fromLevel, g_lsm_fence_ptr[fromLevel].max_page_size);
+//    reset_bloom_table_row(fromLevel, g_lsm_fence_ptr[fromLevel].max_page_size);
 }
 
 int append_to_file(char* filename, runHeader header, node* list)

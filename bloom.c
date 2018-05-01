@@ -2,74 +2,86 @@
 #include "hashlib.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void moveBloomFilter(uint32_t from_level, uint32_t from_page_num,uint32_t to_level, uint32_t to_page_num){
-	g_bloom_table[to_level][to_page_num] = g_bloom_table[from_level][from_page_num];
-}
-void addToBloom(uint32_t level, uint32_t page_num, uint32_t key) {
-	uint32_t pos,filter_size = sizeof(bloom_type)*8;	
-	
-	pos = mod_hash(key,filter_size) ;
-	g_bloom_table[level][page_num] |= (1<<pos);
+// static bloom_filter** g_bloom_table;
 
-//printBits(sizeof(g_bloom_table[level][page_num]), &g_bloom_table[level][page_num]);
-	pos = bin_hash(key,filter_size) ;
-	g_bloom_table[level][page_num] |= (1<<pos);
-	
-	pos = midsquare_hash(key);
-
-	g_bloom_table[level][page_num]  |= (1<<(pos%filter_size));
-
-}
-
-int contains(uint32_t level, uint32_t page_num,uint32_t key) {
-	int pos1,pos2,pos3,filter_size = sizeof(bloom_type)*8;
-	
-	pos1 = mod_hash(key,filter_size);
-	pos2 = bin_hash(key,filter_size);
-	pos3 = midsquare_hash(key);
-	
-	if (
-		((g_bloom_table[level][page_num]) & (1<<pos1)) &&
-		((g_bloom_table[level][page_num]) & (1<<pos2))&&
-		((g_bloom_table[level][page_num]) & (1<<(pos3%filter_size)) ) 
-			)
-				return 1;
-	else
-		return 0;
-	
-}
-
-bloom_type **create_bloom_table(int row, int col) /* Allocate the array for bloom filter*/
+void moveBloomFilter(uint32_t from_level, uint32_t from_page_num, uint32_t to_level, uint32_t to_page_num)
 {
-    /* Check if allocation succeeded. (check for NULL pointer) */
-    bloom_type **table;
-    table = malloc(row*sizeof(bloom_type *));
-    for(int i = 0 ; i < row ; i++)
-        table[i] = malloc( col*sizeof(bloom_type) );
-    return table;
+
+    memcpy(g_bloom_filter_ptr[to_level].page[to_page_num].bitmap,
+        g_bloom_filter_ptr[from_level].page[from_page_num].bitmap, g_bloom_filter_ptr[from_level].filter_size);
+    memset(g_bloom_filter_ptr[from_level].page[from_page_num].bitmap, 0, g_bloom_filter_ptr[from_level].filter_size);
+}
+void addToBloom(uint32_t level, uint32_t page_num, uint32_t key)
+{
+    uint32_t pos, filter_size, bitmap_index, bit_index;
+    filter_size = g_bloom_filter_ptr[level].filter_size;
+
+    pos = mod_hash(key, filter_size);
+    bitmap_index = pos / (sizeof(bloom_type) * 8);
+    bit_index = pos % (sizeof(bloom_type) * 8);
+    g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index] |= (1 << bit_index);
+
+    pos = bin_hash(key, filter_size);
+    bitmap_index = pos / (sizeof(bloom_type) * 8);
+    bit_index = pos % (sizeof(bloom_type) * 8);
+    g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index] |= (1 << bit_index);
+
+    pos = multiplication_hash(key, filter_size);
+    bitmap_index = pos / (sizeof(bloom_type) * 8);
+    bit_index = pos % (sizeof(bloom_type) * 8);
+    g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index] |= (1 << bit_index);
 }
 
-void reset_bloom_table_row(uint32_t row, uint32_t size){
-	for (uint32_t i =0; i< size ; i++){
-		g_bloom_table[row][i] = 0x0;
-	}
-	
-}
+int contains(uint32_t level, uint32_t page_num, uint32_t key)
+{
+    uint32_t pos1, pos2, pos3, filter_size;
+    uint32_t bitmap_index1, bitmap_index2, bitmap_index3;
+    uint32_t bit_index1, bit_index2, bit_index3;
+    int is_bit1_set, is_bit2_set, is_bit3_set;
+    filter_size = g_bloom_filter_ptr[level].filter_size;;
 
-//void printBits(size_t const size, void const * const ptr)
+    pos1 = mod_hash(key, filter_size);
+    bitmap_index1 = pos1 / (sizeof(bloom_type) * 8);
+    bit_index1 = pos1 % (sizeof(bloom_type) * 8);
+    is_bit1_set = g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index1] & (1 << bit_index1);
+
+    pos2 = bin_hash(key, filter_size);
+    bitmap_index2 = pos2 / (sizeof(bloom_type) * 8);
+    bit_index2 = pos2 % (sizeof(bloom_type) * 8);
+    is_bit2_set = g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index2] & (1 << bit_index2);
+
+    pos3 = multiplication_hash(key, filter_size);
+    bitmap_index3 = pos3 / (sizeof(bloom_type) * 8);
+    bit_index3 = pos3 % (sizeof(bloom_type) * 8);
+    is_bit3_set = g_bloom_filter_ptr[level].page[page_num].bitmap[bitmap_index3] & (1 << bit_index3);
+
+    if(is_bit1_set && is_bit2_set && is_bit3_set)
+	return 1;
+    else
+	return 0;
+}
+// void init_bloom_table(int row, int col, int number_of_byte) /* Allocate the array for bloom filter*/
 //{
-//    unsigned char *b = (unsigned char*) ptr;
-//    unsigned char byte;
-//    int i, j;
-//
-//    for (i=size-1;i>=0;i--)
-//    {
-//        for (j=7;j>=0;j--)
-//        {
-//            byte = (b[i] >> j) & 1;
-//            printf("%u", byte);
-//        }
+//    /* Check if allocation succeeded. (check for NULL pointer) */
+////    bloom_filter** table;
+//    g_bloom_table = malloc(row * sizeof(bloom_filter*));
+//    for(int i = 0; i < row; i++) {
+//	g_bloom_table[i] = malloc(col * sizeof(bloom_filter));
+//	for(int j = 0; j < col; j++) {
+//		bloom_filter b_filter = g_bloom_table[i][j];
+//	    b_filter.bit_array = malloc(number_of_byte * sizeof(bitmap));
+//	    b_filter.filter_size = number_of_byte * sizeof(bitmap);
+//	}
 //    }
-//    puts("");
+//
+//    return table;
+//}
+
+// void reset_bloom_table_row(uint32_t row, uint32_t size)
+//{
+//    for(uint32_t i = 0; i < size; i++) {
+//	g_bloom_table[row][i] = 0x0;
+//    }
 //}

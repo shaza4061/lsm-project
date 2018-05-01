@@ -9,14 +9,15 @@
 // Compile and run it in the command line by typing:
 // make test; ./test
 
-int mainA()
+int main()
 {
     int run_size = 2;
     int level_ratio = 3;
     int level_size = 6;
 	int thread_size = SINGLE_THREAD;
+	double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
 
-    lsm* tree = createLSMTree(run_size, level_size, level_ratio,thread_size);
+    lsm* tree = createLSMTree(run_size, level_size, level_ratio,thread_size,false_positive_rate);
     runTest(tree);
     return 0;
 }
