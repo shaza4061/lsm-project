@@ -99,21 +99,14 @@ int main(int argc, char** argv)
 
 	case 'b': {
 	    run_size = atoi(optarg);
-	    if(run_size > MAX_LSM_RUN_SIZE) {
-		printf("ERROR: Run size cannot be bigger than %d. Terminating...", MAX_LSM_RUN_SIZE);
-		exit(1);
-	    }
 	    break;
 	}
 	case 'l':
 	    level_size = atoi(optarg);
-	    if(level_size % 2 != 0) {
-		printf("ERROR: Level size must be an even number. Terminating...");
-		exit(1);
-	    }
 	    break;
 	case 'f':
 		false_positive_rate = atof(optarg);
+		break;
 	case 'r':
 	    level_ratio = atoi(optarg);
 	    break;
@@ -142,7 +135,7 @@ int main(int argc, char** argv)
 	printf("Tree height:%d\n", level_size);
 	printf("Ratio size:%d\n", level_ratio);
 	printf("Thread count:%d\n", thread_size);
-	printf("Bloom False Positive Rate:%d%%\n",(int)false_positive_rate*100);
+	printf("Bloom False Positive Rate:%.2f%%\n",false_positive_rate*100);
 	printf("**************************\n");
     }
 

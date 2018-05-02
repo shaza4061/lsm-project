@@ -6,10 +6,10 @@
 #include "hasht.h"
 #include "fileutil.h"
 
-#define DEFAULT_LSM_LEVEL_RATIO 3 
-#define DEFAULT_LSM_LEVEL 100 
-#define MAX_LSM_RUN_SIZE 10 
-#define DEFAULT_THREAD_SIZE 4
+#define DEFAULT_LSM_LEVEL_RATIO 2
+#define DEFAULT_LSM_LEVEL 24
+#define MAX_LSM_RUN_SIZE 10
+#define DEFAULT_THREAD_SIZE 1
 #define TRUE 1
 #define FALSE 0
 #define EMPTY_VALUE -0

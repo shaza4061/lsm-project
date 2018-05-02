@@ -33,22 +33,8 @@ lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_s
 	    g_lsm_fence_ptr[i].page[j].min = 0;
 	    g_lsm_fence_ptr[i].page[j].max = 0;
 		g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size/8,sizeof(bloom_type));
-//		memset(g_bloom_filter_ptr[i].page[j].bitmap,0,DEFAULT_FILTER_SIZE);
 	}
     }
-/**	
-	//test bloom filter
-	for(int row = 0;row<max_level;row++){
-		int max_col = g_lsm_fence_ptr[row].max_page_size;
-		for(int col = 0; col<max_col;col++){
-			for(int bloom_block =0;bloom_block<DEFAULT_FILTER_SIZE;bloom_block++){
-				printf("Accessing row = %d, col= %d, bloom_block[%d]\n",row,col,bloom_block);
-				printf("%d\n",g_bloom_table[row][col][bloom_block]);	
-				}
-			}
-		}
-**/
-
     return tree;
 }
 
@@ -72,11 +58,13 @@ pair get(lsm* tree, int32_t key)
     for(int i = 0; i < (int)result->size; i++) {
 	if(result->bucket[i] != NULL) {
 	    node* current = result->bucket[i];
-	    node* head = current;
-	    while((current = head) != NULL) {
-		head = (node*)head->next;
-		free(current);
-	    }
+		node* head = NULL;
+		do{
+			head = current;
+			head = (node*)head->next;
+			free(current);
+			current = head;
+		}while(current!=NULL);
 	}
     }
 
@@ -98,12 +86,9 @@ pair slow_get(lsm* tree, int32_t key)
 			// if key is in between the page then get the page
 			if(contains(level_n, page_num, key) == TRUE) {
 			    char* filename = getFileName(level_n);
-			    // long offset = (sizeof(runHeader) + sizeof(pair) * tree->l0->size) * page_num;
 			    run* page = read_a_page(filename, page_num, tree->l0->size);
 			    for(uint32_t i = 0; i < page->header.pairCount; i++) {
 				if(key == page->keyValue[i].key) {
-				    //					value =
-				    // createNode(page->keyValue[i].key,page->keyValue[i].value,VALID);
 				    value.key = page->keyValue[i].key;
 				    value.value = page->keyValue[i].value;
 				    value.state = page->keyValue[i].state;
