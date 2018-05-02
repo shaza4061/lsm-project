@@ -15,10 +15,10 @@ char* getFileName(uint32_t level_n)
     snprintf(level, 2, "%d", level_n);
     char* filename = calloc(1,sizeof(path) + strlen(LSM_FILENAME_PREFIX) + strlen(level) + strlen(FILE_EXTENSION) + 1);
 	if (path != NULL) // if path exist
-		strcpy(filename,path);
-    strcat(filename, LSM_FILENAME_PREFIX);
-    strcat(filename, level);
-    strcat(filename, FILE_EXTENSION);
+		strncpy(filename,path,strlen(path));
+    strncat(filename, LSM_FILENAME_PREFIX,strlen(LSM_FILENAME_PREFIX));
+    strncat(filename, level,strlen(level));
+    strncat(filename, FILE_EXTENSION,strlen(FILE_EXTENSION));
     return filename;
 }
 

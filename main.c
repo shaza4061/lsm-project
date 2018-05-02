@@ -138,14 +138,16 @@ int main(int argc, char** argv)
 	printf("Bloom False Positive Rate:%.2f%%\n",false_positive_rate*100);
 	printf("**************************\n");
     }
-
+	
+	if(!silent_mode) printf("Initializing...");
     tree = createLSMTree(run_size, level_size, level_ratio, thread_size,false_positive_rate);
-
+	if(!silent_mode) printf("Completed\n\n");
     char command[50] = "";
     int chr;
 
     do {
 	int cols;
+	if(!silent_mode) printf(">");
 	for(cols = 0; (chr = getchar()) != '\n'; cols++) {
 	    command[cols] = chr;
 	}

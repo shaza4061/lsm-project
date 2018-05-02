@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=BEST
-Date                   :=02/05/2018
+Date                   :=03/05/2018
 CodeLitePath           :="C:/Program Files/CodeLite"
 LinkerName             :=gcc
 SharedObjectLinkerName :=gcc -shared -fPIC
@@ -62,7 +62,7 @@ AS       := as
 ## User defined environment variables
 ##
 CodeLiteDir:=C:\Program Files\CodeLite
-Objects0=$(IntermediateDirectory)/test.c$(ObjectSuffix) $(IntermediateDirectory)/test_multithreaded_lsm.c$(ObjectSuffix) $(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) $(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) $(IntermediateDirectory)/test_single_thread_range.c$(ObjectSuffix) $(IntermediateDirectory)/node.c$(ObjectSuffix) $(IntermediateDirectory)/fileutil.c$(ObjectSuffix) $(IntermediateDirectory)/lsm.c$(ObjectSuffix) $(IntermediateDirectory)/hasht.c$(ObjectSuffix) $(IntermediateDirectory)/bloom.c$(ObjectSuffix) \
+Objects0=$(IntermediateDirectory)/hasht.c$(ObjectSuffix) $(IntermediateDirectory)/test_multithreaded_lsm.c$(ObjectSuffix) $(IntermediateDirectory)/node.c$(ObjectSuffix) $(IntermediateDirectory)/test_single_thread_range.c$(ObjectSuffix) $(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) $(IntermediateDirectory)/fileutil.c$(ObjectSuffix) $(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) $(IntermediateDirectory)/test.c$(ObjectSuffix) $(IntermediateDirectory)/bloom.c$(ObjectSuffix) $(IntermediateDirectory)/lsm.c$(ObjectSuffix) \
 	$(IntermediateDirectory)/main.c$(ObjectSuffix) $(IntermediateDirectory)/hashlib.c$(ObjectSuffix) 
 
 
@@ -94,13 +94,13 @@ PreBuild:
 ##
 ## Objects
 ##
-$(IntermediateDirectory)/test.c$(ObjectSuffix): test.c $(IntermediateDirectory)/test.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/test.c$(DependSuffix): test.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test.c$(DependSuffix) -MM test.c
+$(IntermediateDirectory)/hasht.c$(ObjectSuffix): hasht.c $(IntermediateDirectory)/hasht.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/hasht.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/hasht.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/hasht.c$(DependSuffix): hasht.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/hasht.c$(ObjectSuffix) -MF$(IntermediateDirectory)/hasht.c$(DependSuffix) -MM hasht.c
 
-$(IntermediateDirectory)/test.c$(PreprocessSuffix): test.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test.c$(PreprocessSuffix) test.c
+$(IntermediateDirectory)/hasht.c$(PreprocessSuffix): hasht.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/hasht.c$(PreprocessSuffix) hasht.c
 
 $(IntermediateDirectory)/test_multithreaded_lsm.c$(ObjectSuffix): test_multithreaded_lsm.c $(IntermediateDirectory)/test_multithreaded_lsm.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_multithreaded_lsm.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_multithreaded_lsm.c$(ObjectSuffix) $(IncludePath)
@@ -110,21 +110,13 @@ $(IntermediateDirectory)/test_multithreaded_lsm.c$(DependSuffix): test_multithre
 $(IntermediateDirectory)/test_multithreaded_lsm.c$(PreprocessSuffix): test_multithreaded_lsm.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_multithreaded_lsm.c$(PreprocessSuffix) test_multithreaded_lsm.c
 
-$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix): test_multi_thread_range.c $(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_multi_thread_range.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix): test_multi_thread_range.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix) -MM test_multi_thread_range.c
+$(IntermediateDirectory)/node.c$(ObjectSuffix): node.c $(IntermediateDirectory)/node.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/node.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/node.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/node.c$(DependSuffix): node.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/node.c$(ObjectSuffix) -MF$(IntermediateDirectory)/node.c$(DependSuffix) -MM node.c
 
-$(IntermediateDirectory)/test_multi_thread_range.c$(PreprocessSuffix): test_multi_thread_range.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_multi_thread_range.c$(PreprocessSuffix) test_multi_thread_range.c
-
-$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix): test_singlethreaded_lsm.c $(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_singlethreaded_lsm.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix): test_singlethreaded_lsm.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix) -MM test_singlethreaded_lsm.c
-
-$(IntermediateDirectory)/test_singlethreaded_lsm.c$(PreprocessSuffix): test_singlethreaded_lsm.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_singlethreaded_lsm.c$(PreprocessSuffix) test_singlethreaded_lsm.c
+$(IntermediateDirectory)/node.c$(PreprocessSuffix): node.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/node.c$(PreprocessSuffix) node.c
 
 $(IntermediateDirectory)/test_single_thread_range.c$(ObjectSuffix): test_single_thread_range.c $(IntermediateDirectory)/test_single_thread_range.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_single_thread_range.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_single_thread_range.c$(ObjectSuffix) $(IncludePath)
@@ -134,13 +126,13 @@ $(IntermediateDirectory)/test_single_thread_range.c$(DependSuffix): test_single_
 $(IntermediateDirectory)/test_single_thread_range.c$(PreprocessSuffix): test_single_thread_range.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_single_thread_range.c$(PreprocessSuffix) test_single_thread_range.c
 
-$(IntermediateDirectory)/node.c$(ObjectSuffix): node.c $(IntermediateDirectory)/node.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/node.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/node.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/node.c$(DependSuffix): node.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/node.c$(ObjectSuffix) -MF$(IntermediateDirectory)/node.c$(DependSuffix) -MM node.c
+$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix): test_singlethreaded_lsm.c $(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_singlethreaded_lsm.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix): test_singlethreaded_lsm.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test_singlethreaded_lsm.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test_singlethreaded_lsm.c$(DependSuffix) -MM test_singlethreaded_lsm.c
 
-$(IntermediateDirectory)/node.c$(PreprocessSuffix): node.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/node.c$(PreprocessSuffix) node.c
+$(IntermediateDirectory)/test_singlethreaded_lsm.c$(PreprocessSuffix): test_singlethreaded_lsm.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_singlethreaded_lsm.c$(PreprocessSuffix) test_singlethreaded_lsm.c
 
 $(IntermediateDirectory)/fileutil.c$(ObjectSuffix): fileutil.c $(IntermediateDirectory)/fileutil.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/fileutil.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/fileutil.c$(ObjectSuffix) $(IncludePath)
@@ -150,21 +142,21 @@ $(IntermediateDirectory)/fileutil.c$(DependSuffix): fileutil.c
 $(IntermediateDirectory)/fileutil.c$(PreprocessSuffix): fileutil.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/fileutil.c$(PreprocessSuffix) fileutil.c
 
-$(IntermediateDirectory)/lsm.c$(ObjectSuffix): lsm.c $(IntermediateDirectory)/lsm.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/lsm.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/lsm.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/lsm.c$(DependSuffix): lsm.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/lsm.c$(ObjectSuffix) -MF$(IntermediateDirectory)/lsm.c$(DependSuffix) -MM lsm.c
+$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix): test_multi_thread_range.c $(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test_multi_thread_range.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix): test_multi_thread_range.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test_multi_thread_range.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test_multi_thread_range.c$(DependSuffix) -MM test_multi_thread_range.c
 
-$(IntermediateDirectory)/lsm.c$(PreprocessSuffix): lsm.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/lsm.c$(PreprocessSuffix) lsm.c
+$(IntermediateDirectory)/test_multi_thread_range.c$(PreprocessSuffix): test_multi_thread_range.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test_multi_thread_range.c$(PreprocessSuffix) test_multi_thread_range.c
 
-$(IntermediateDirectory)/hasht.c$(ObjectSuffix): hasht.c $(IntermediateDirectory)/hasht.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/hasht.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/hasht.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/hasht.c$(DependSuffix): hasht.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/hasht.c$(ObjectSuffix) -MF$(IntermediateDirectory)/hasht.c$(DependSuffix) -MM hasht.c
+$(IntermediateDirectory)/test.c$(ObjectSuffix): test.c $(IntermediateDirectory)/test.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/test.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/test.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/test.c$(DependSuffix): test.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/test.c$(ObjectSuffix) -MF$(IntermediateDirectory)/test.c$(DependSuffix) -MM test.c
 
-$(IntermediateDirectory)/hasht.c$(PreprocessSuffix): hasht.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/hasht.c$(PreprocessSuffix) hasht.c
+$(IntermediateDirectory)/test.c$(PreprocessSuffix): test.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/test.c$(PreprocessSuffix) test.c
 
 $(IntermediateDirectory)/bloom.c$(ObjectSuffix): bloom.c $(IntermediateDirectory)/bloom.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/bloom.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/bloom.c$(ObjectSuffix) $(IncludePath)
@@ -173,6 +165,14 @@ $(IntermediateDirectory)/bloom.c$(DependSuffix): bloom.c
 
 $(IntermediateDirectory)/bloom.c$(PreprocessSuffix): bloom.c
 	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/bloom.c$(PreprocessSuffix) bloom.c
+
+$(IntermediateDirectory)/lsm.c$(ObjectSuffix): lsm.c $(IntermediateDirectory)/lsm.c$(DependSuffix)
+	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/lsm.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/lsm.c$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/lsm.c$(DependSuffix): lsm.c
+	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/lsm.c$(ObjectSuffix) -MF$(IntermediateDirectory)/lsm.c$(DependSuffix) -MM lsm.c
+
+$(IntermediateDirectory)/lsm.c$(PreprocessSuffix): lsm.c
+	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/lsm.c$(PreprocessSuffix) lsm.c
 
 $(IntermediateDirectory)/main.c$(ObjectSuffix): main.c $(IntermediateDirectory)/main.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "C:/cygwin64/home/BEST/cs265/project/lsm-project/main.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/main.c$(ObjectSuffix) $(IncludePath)
