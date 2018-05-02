@@ -9,9 +9,9 @@
 // Compile and run it in the command line by typing:
 // make test; ./test
 
-int mainD()
+int main()
 {
-    int run_size = 2;
+    int run_size = 5;
     int level_ratio = 3;
     int level_size = 6;
 	int thread_size = SINGLE_THREAD;

@@ -1,7 +1,7 @@
 #include "lsm.h"
 #include "test.h"
 
-int mainA()
+int mainZ()
 {
     int run_size = 2;
     int level_ratio = 3;

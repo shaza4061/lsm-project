@@ -19,7 +19,6 @@ void runRangeTest(lsm* tree)
 	put(tree, keys[i], values[i]);
 	printf("\t(%d -> %d) \n", keys[i], values[i]);
     }
-//    printBloomTable(tree);
 
     int from = 3500;
     int to = 3700;
@@ -58,7 +57,7 @@ void runRangeTest(lsm* tree)
     printf("PASS\n");
     free(result);
 }
-int mainC()
+int main()
 {
     int run_size = 2;
     int level_ratio = 3;

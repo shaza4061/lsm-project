@@ -17,11 +17,11 @@ lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_s
     tree->l0->currSize = 0;
     g_lsm_fence_ptr = malloc(max_level * sizeof(fencePtr));
     g_bloom_filter_ptr = malloc(max_level * sizeof(bloom_filter));
-	
+
     for(int i = 0; i < max_level; i++) {
 	int max_page_size = bucket_size * level_ratio * ((int)pow((double)level_ratio, i));
 	int filter_size = ceil((bucket_size * log(false_positive_rate)) / log(1 / pow(2, log(2))));
-	
+
 	g_lsm_fence_ptr[i].curr_page_size = 0;
 	g_lsm_fence_ptr[i].max_page_size = max_page_size;
 	g_lsm_fence_ptr[i].page = malloc(max_page_size * (sizeof(runHeader) + 2));
@@ -32,7 +32,7 @@ lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_s
 	    g_lsm_fence_ptr[i].page[j].pairCount = 0;
 	    g_lsm_fence_ptr[i].page[j].min = 0;
 	    g_lsm_fence_ptr[i].page[j].max = 0;
-		g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size/8,sizeof(bloom_type));
+	    g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size / 8, sizeof(bloom_type));
 	}
     }
     return tree;
@@ -58,13 +58,13 @@ pair get(lsm* tree, int32_t key)
     for(int i = 0; i < (int)result->size; i++) {
 	if(result->bucket[i] != NULL) {
 	    node* current = result->bucket[i];
-		node* head = NULL;
-		do{
-			head = current;
-			head = (node*)head->next;
-			free(current);
-			current = head;
-		}while(current!=NULL);
+	    node* head = NULL;
+	    do {
+		head = current;
+		head = (node*)head->next;
+		free(current);
+		current = head;
+	    } while(current != NULL);
 	}
     }
 
@@ -239,12 +239,13 @@ void printLinkedList(node* nodes)
     }
 }
 
-hashTable* range(lsm* tree, int from, int to) {
-	if(tree->max_thread==SINGLE_THREAD) {
-		return single_thread_range(tree,from,to);
-	} else {
-		return multi_thread_range(tree,from,to);
-	}
+hashTable* range(lsm* tree, int from, int to)
+{
+    if(tree->max_thread == SINGLE_THREAD) {
+	return single_thread_range(tree, from, to);
+    } else {
+	return multi_thread_range(tree, from, to);
+    }
 }
 
 hashTable* single_thread_range(lsm* tree, int from, int to)
@@ -335,10 +336,10 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 	int scanning_in_progress = TRUE;
 	int current_level = 0;
 	int thread_count = 0;
-	
-	//Create a lookup table to store thread information
-	int *thread_lookup_table = malloc(max_thread_count * sizeof(int *)); 
-	
+
+	// Create a lookup table to store thread information
+	int* thread_lookup_table = malloc(max_thread_count * sizeof(int*));
+
 	// Create thread to search for candidate block
 	// at each level
 	while(thread_still_running || scanning_in_progress) {
@@ -347,7 +348,7 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 		for(int thread_num = 0; thread_num < thread_count; thread_num++) {
 		    void* temp = NULL;
 		    pthread_join(search_threads[thread_num], &temp);
-			int level = thread_lookup_table[thread_num];
+		    int level = thread_lookup_table[thread_num];
 		    page_num_list[level] = (linked_list*)temp;
 		}
 		// reset thread count
@@ -360,8 +361,8 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 		arg->id = thread_count;
 		arg->range_from = from;
 		arg->range_to = to;
-		
-		//register thread in thread lookup table
+
+		// register thread in thread lookup table
 		thread_lookup_table[thread_count] = current_level;
 		if(pthread_create(&search_threads[thread_count], NULL, search_level_for_range, arg) != 0) {
 		    printf("%s", ERROR_CREATING_THREAD);
@@ -374,7 +375,7 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 	    }
 	}
 
-	//For each level, we retrieve the potential page and perform search
+	// For each level, we retrieve the potential page and perform search
 	for(int level = 0; level < level_size; level++) {
 	    char* filename = getFileName(level);
 	    linked_list* page = page_num_list[level];
@@ -441,6 +442,19 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
     return result;
 }
 
+int binary_search(pair* list, int lower_b, int upper_b, int key)
+{
+    if(upper_b >= lower_b) {
+	int mid = lower_b + (upper_b - lower_b) / 2;
+	if(list[mid].key == key)
+	    return mid;
+	if(list[mid].key > key)
+	    return binary_search(list, lower_b, mid - 1, key);
+	return binary_search(list, mid + 1, upper_b, key);
+    }
+    return -1;
+}
+
 void* search_page_for_range(void* arguments)
 {
     search_arg* args = (search_arg*)arguments;
@@ -452,9 +466,43 @@ void* search_page_for_range(void* arguments)
     hashTable* result = args->result;
     node* result_nodes = NULL;
 
+    for(int key = from; key < to; key++) {
+	pair item = look(result, key);
+	// if key is not in current result and match with bloom filter
+	if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
+	    int key_loc = binary_search(page->keyValue, 0, page->header.pairCount - 1, key);
+	    if(key_loc > -1) {
+		node* newNode = createNode(page->keyValue[key_loc].key, page->keyValue[key_loc].value, page->keyValue[key_loc].state);
+		if(result_nodes == NULL) {
+		    result_nodes = newNode;
+		} else {
+		    result_nodes->next = (struct node*)newNode;
+		    result_nodes = (node*)result_nodes->next;
+		}
+		add(result, newNode);
+	    }
+	}
+    }
+	args->result = NULL;
+    args->disk_page = NULL;
+    free(args);
+    return (void*)NULL;
+}
+
+/**
+void* deprecated_search_page_for_range(void* arguments)
+{
+    search_arg* args = (search_arg*)arguments;
+    int from = args->range_from;
+    int to = args->range_to;
+    int level = args->level;
+    int page_num = args->page_num;
+    run* page = args->disk_page;
+    hashTable* result = args->result;
+    node* result_nodes = NULL;
+
     for(uint32_t i = 0; i < page->header.pairCount; i++) {
-	for(int key = from; key <= to; key++) {
-	    // printf("Thread#%d: Searching for key %d\n",id,key);
+	for(int key = from; key < to; key++) {
 	    pair item = look(result, key);
 	    // if key is not in current result and match with bloom filter
 	    if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
@@ -475,7 +523,7 @@ void* search_page_for_range(void* arguments)
     args->disk_page = NULL;
     free(args);
     return (void*)NULL;
-}
+}**/
 
 void* search_level_for_range(void* arguments)
 {
@@ -566,7 +614,7 @@ char convert_bucket_state_to_char(int int_state)
     return bucket_status;
 }
 
-//void printBloomTable(lsm* tree)
+// void printBloomTable(lsm* tree)
 //{
 //    for(int i = 0; i < (int)tree->max_level; i++) {
 //	for(int j = 0; j < (int)g_lsm_fence_ptr[i].curr_page_size; j++) {
