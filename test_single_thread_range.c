@@ -57,7 +57,7 @@ void runRangeTest(lsm* tree)
     printf("PASS\n");
     free(result);
 }
-int main()
+int mainJ()
 {
     int run_size = 2;
     int level_ratio = 3;

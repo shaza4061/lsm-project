@@ -10,12 +10,17 @@ static level_data_path g_data_path_lookup[MAX_DATA_PATH];
 char* getFileName(uint32_t level_n)
 {
     char level[2];
+	char* filename;
     char* path  = data_path_get(level_n+1);
 
     snprintf(level, 2, "%d", level_n);
-    char* filename = calloc(1,strlen(path) + strlen(LSM_FILENAME_PREFIX) + strlen(level) + strlen(FILE_EXTENSION) + 1);
-	if (path != NULL) // if path exist
+	if (path != NULL) { // if path exist
+		filename = calloc(1,strlen(path) + strlen(LSM_FILENAME_PREFIX) + strlen(level) + strlen(FILE_EXTENSION) + 1);
 		strncpy(filename,path,strlen(path));
+	} else {
+		filename = calloc(1,strlen(LSM_FILENAME_PREFIX) + strlen(level) + strlen(FILE_EXTENSION) + 1);
+	}
+		
     strncat(filename, LSM_FILENAME_PREFIX,strlen(LSM_FILENAME_PREFIX));
     strncat(filename, level,strlen(level));
     strncat(filename, FILE_EXTENSION,strlen(FILE_EXTENSION));

@@ -9,7 +9,7 @@
 // Compile and run it in the command line by typing:
 // make test; ./test
 
-int main()
+int mainW()
 {
     int run_size = 5;
     int level_ratio = 3;
