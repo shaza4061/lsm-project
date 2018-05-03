@@ -1,11 +1,10 @@
-#include "lsm.h"
 #include "fileutil.h"
+#include "lsm.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
-#define COLS 30
-#define WIDTH 5
 
 void parse_command(char[]);
 lsm* tree = NULL;
@@ -16,14 +15,14 @@ int main(int argc, char** argv)
     int level_ratio = DEFAULT_LSM_LEVEL_RATIO;
     int level_size = DEFAULT_LSM_LEVEL;
     int thread_size = DEFAULT_THREAD_SIZE;
-	double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
+    double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
     int c;
     opterr = 0;
 
     while((c = getopt(argc, argv, "sb:l:r:t:d:f:")) != -1)
 	switch(c) {
 	case 'd': {
-		data_path_init();
+	    data_path_init();
 	    char file_path[5][100];
 	    int row = 0;
 	    char* path_config = strtok(optarg, ",");
@@ -32,7 +31,7 @@ int main(int argc, char** argv)
 		strcpy(file_path[row], path_config);
 		row++;
 		path_config = strtok(NULL, "-");
-		
+
 		if(row >= MAX_DATA_PATH) {
 		    printf("Number of  path define cannot exceed %d\n", MAX_DATA_PATH);
 		    exit(EXIT_FAILURE);
@@ -48,33 +47,33 @@ int main(int argc, char** argv)
 			char strFromLevel[5] = "";
 			char strToLevel[5] = "";
 			char path[50] = "";
-			char temp1[50]="";
-			int intFromLevel, intToLevel,strLength;
-			
+			char temp1[50] = "";
+			int intFromLevel, intToLevel, strLength;
+
 			strLength = strlen(level_config);
-			strncpy(temp1, level_config+1, strLength);
+			strncpy(temp1, level_config + 1, strLength);
 			level_config = strtok(NULL, "=");
-			strncpy(path,level_config,strlen(level_config));
+			strncpy(path, level_config, strlen(level_config));
 			const char* ptr = strchr(temp1, '-');
 			strncpy(strFromLevel, temp1, ptr - temp1);
 			strncpy(strToLevel, ptr + 1, strlen(temp1) - (ptr - temp1 + 1));
 			intFromLevel = atoi(strFromLevel);
 			intToLevel = atoi(strToLevel);
-			data_path_add(intFromLevel,intToLevel,path);
+			data_path_add(intFromLevel, intToLevel, path);
 			break;
 
 		    } else if(code == '+') {
 			char strLevel[5] = "";
 			char path[50] = "";
 			int intLevel;
-			
+
 			strncpy(strLevel, level_config + 1, length - 1);
 			intLevel = atoi(strLevel);
 			level_config = strtok(NULL, "=");
 			strncpy(path, level_config, strlen(level_config));
-			data_path_add(intLevel,100,path);
+			data_path_add(intLevel, 100, path);
 			break;
-			
+
 		    } else if(code == 's') {
 			char strLevel[5] = "";
 			char path[50] = "";
@@ -84,10 +83,10 @@ int main(int argc, char** argv)
 			intLevel = atoi(strLevel);
 			level_config = strtok(NULL, "=");
 			strncpy(path, level_config, strlen(level_config));
-			data_path_add(intLevel,intLevel,path);
+			data_path_add(intLevel, intLevel, path);
 			printf("Level %d data is saved at %s\n", intLevel, path);
 			break;
-			
+
 		    } else {
 			printf("Invalid operator %c. Expected 'r','s', or '+'\n", code);
 			exit(EXIT_FAILURE);
@@ -105,8 +104,8 @@ int main(int argc, char** argv)
 	    level_size = atoi(optarg);
 	    break;
 	case 'f':
-		false_positive_rate = atof(optarg);
-		break;
+	    false_positive_rate = atof(optarg);
+	    break;
 	case 'r':
 	    level_ratio = atoi(optarg);
 	    break;
@@ -135,19 +134,22 @@ int main(int argc, char** argv)
 	printf("Tree height:%d\n", level_size);
 	printf("Ratio size:%d\n", level_ratio);
 	printf("Thread count:%d\n", thread_size);
-	printf("Bloom False Positive Rate:%.2f%%\n",false_positive_rate*100);
+	printf("Bloom False Positive Rate:%.2f%%\n", false_positive_rate * 100);
 	printf("**************************\n");
     }
-	
-	if(!silent_mode) printf("Initializing...");
-    tree = createLSMTree(run_size, level_size, level_ratio, thread_size,false_positive_rate);
-	if(!silent_mode) printf("Completed\n\n");
+
+    if(!silent_mode)
+	printf("Initializing...");
+    tree = createLSMTree(run_size, level_size, level_ratio, thread_size, false_positive_rate);
+    if(!silent_mode)
+	printf("Completed\n\n");
     char command[50] = "";
     int chr;
 
     do {
 	int cols;
-	if(!silent_mode) printf(">");
+	if(!silent_mode)
+	    printf(">");
 	for(cols = 0; (chr = getchar()) != '\n'; cols++) {
 	    command[cols] = chr;
 	}
@@ -174,15 +176,25 @@ void parse_command(char command[])
     char op = tokens[0][0];
     switch(op) {
     case 'p': {
+	clock_t t;
+	t = clock();
 	put(tree, atoi(tokens[1]), atoi(tokens[2]));
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	if(!silent_mode)
+	    printf("Completed in %f seconds\n", time_taken);
 	break;
     }
     case 'g': {
+	clock_t t;
+	t = clock();
 	pair value = get(tree, atoi(tokens[1]));
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
 	if(value.state != INVALID && value.state != UNKNOWN)
 	    if(!silent_mode) {
-		printf("%d", value.value);
-		printf("\n");
+		printf("%d\n", value.value);
+		printf("Completed in %f seconds\n", time_taken);
 	    }
 
 	break;
@@ -191,6 +203,8 @@ void parse_command(char command[])
 	int from = atoi(tokens[1]);
 	int to = atoi(tokens[2]);
 
+	clock_t t;
+	t = clock();
 	hashTable* result = range(tree, from, to);
 	for(int key = from; key < to; key++) {
 	    pair item = look(result, key);
@@ -211,15 +225,26 @@ void parse_command(char command[])
 	    }
 	}
 	free(result);
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	if(!silent_mode)
+	    printf("Completed in %f seconds\n", time_taken);
 	break;
     }
     case 'd': {
+	clock_t t;
+	t = clock();
 	erase(tree, atoi(tokens[1]));
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	if(!silent_mode)
+	    printf("Completed in %f seconds\n", time_taken);
 	break;
     }
     case 'l': {
 	int count = 0;
-	printf("load %s\n", tokens[1]);
+	clock_t t;
+	t = clock();
 	FILE* read_ptr = fopen(tokens[1], READ_BINARY);
 	if(read_ptr == NULL) {
 	    fprintf(stderr, ERROR_OPENING_FILE_FOR_READING, tokens[1]);
@@ -233,11 +258,23 @@ void parse_command(char command[])
 	    count++;
 	}
 	fclose(read_ptr);
-	printf("%d keys loaded\n", count);
+
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	if(!silent_mode) {
+	    printf("%d keys loaded\n", count);
+	    printf("Completed in %f seconds\n", time_taken);
+	}
 	break;
     }
     case 's': {
+	clock_t t;
+	t = clock();
 	printTree(tree);
+	t = clock() - t;
+	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
+	if(!silent_mode)
+	    printf("Completed in %f seconds\n", time_taken);
 	break;
     }
     case 'q': {
