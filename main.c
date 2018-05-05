@@ -9,7 +9,7 @@
 void parse_command(char[]);
 lsm* tree = NULL;
 int silent_mode = 0;
-int main(int argc, char** argv)
+int mainY(int argc, char** argv)
 {
     int run_size = DEFAULT_BUCKET_SIZE;
     int level_ratio = DEFAULT_LSM_LEVEL_RATIO;
@@ -262,7 +262,7 @@ void parse_command(char command[])
 	t = clock() - t;
 	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
 	if(!silent_mode) {
-	    printf("%d keys loaded\n", count);
+	    printf("%d keys loaded\n", count-1);
 	    printf("Completed in %f seconds\n", time_taken);
 	}
 	break;

@@ -24,16 +24,18 @@ lsm* createLSMTree(int bucket_size, int max_level, int level_ratio, int thread_s
 
 	g_lsm_fence_ptr[i].curr_page_size = 0;
 	g_lsm_fence_ptr[i].max_page_size = max_page_size;
-	g_lsm_fence_ptr[i].page = malloc(max_page_size * (sizeof(runHeader) + 2));
-	g_bloom_filter_ptr[i].page = malloc(max_page_size * (sizeof(bloom_filter_bitmap) + 2));
+	g_lsm_fence_ptr[i].page = NULL;
+	g_bloom_filter_ptr[i].page = NULL;
 	g_bloom_filter_ptr[i].filter_size = filter_size;
-
-	for(int j = 0; j < max_page_size; j++) {
-	    g_lsm_fence_ptr[i].page[j].pairCount = 0;
-	    g_lsm_fence_ptr[i].page[j].min = 0;
-	    g_lsm_fence_ptr[i].page[j].max = 0;
-	    g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size / 8, sizeof(bloom_type));
-	}
+	g_bloom_filter_ptr[i].max_page_size = max_page_size;
+	/**
+	        for(int j = 0; j < max_page_size; j++) {
+	            g_lsm_fence_ptr[i].page[j].pairCount = 0;
+	            g_lsm_fence_ptr[i].page[j].min = 0;
+	            g_lsm_fence_ptr[i].page[j].max = 0;
+	            g_bloom_filter_ptr[i].page[j].bitmap = calloc(filter_size / 8, sizeof(bloom_type));
+	        }
+	         * **/
     }
     return tree;
 }
@@ -85,8 +87,10 @@ pair slow_get(lsm* tree, int32_t key)
 		        key >= g_lsm_fence_ptr[level_n].page[page_num].min) {
 			// if key is in between the page then get the page
 			if(contains(level_n, page_num, key) == TRUE) {
-			    char* filename = getFileName(level_n);
-			    run* page = read_a_page(filename, page_num, tree->l0->size);
+			    char* filename = NULL;
+			    getFileName(level_n, &filename);
+			    run* page = NULL;
+			    read_a_page(filename, page_num, tree->l0->size, &page);
 			    for(uint32_t i = 0; i < page->header.pairCount; i++) {
 				if(key == page->keyValue[i].key) {
 				    value.key = page->keyValue[i].key;
@@ -95,6 +99,10 @@ pair slow_get(lsm* tree, int32_t key)
 				    return value;
 				}
 			    }
+			    free(filename);
+			    free(page);
+			    filename = NULL;
+			    page = NULL;
 			}
 		    }
 		}
@@ -138,7 +146,6 @@ void erase(lsm* tree, int32_t key)
 {
     int dummyInt = EMPTY_VALUE;
     node* n = createNode(key, dummyInt, INVALID);
-    // wipe(tree->l0, n);
     add_to_table(tree, n);
 }
 
@@ -164,8 +171,14 @@ void flush_to_disk(lsm* tree, hashTable* table, uint32_t table_size)
 	run_tiered_compaction(tree);
     }
 
-    char* filename = getFileName(LSM_L1);
+    char* filename = NULL;
+    getFileName(LSM_L1, &filename);
     append_to_file(filename, header, sortedList);
+    free(filename);
+    filename = NULL;
+    if(g_lsm_fence_ptr[LSM_L1].page == NULL) { // initialize level 1 fence pointer if it is not initialize yet
+	initFencePtr(LSM_L1);
+    }
     g_lsm_fence_ptr[LSM_L1].curr_page_size++;
     g_lsm_fence_ptr[LSM_L1].page[g_lsm_fence_ptr[LSM_L1].curr_page_size - 1].pairCount = header.pairCount;
     g_lsm_fence_ptr[LSM_L1].page[g_lsm_fence_ptr[LSM_L1].curr_page_size - 1].min = header.min;
@@ -288,8 +301,12 @@ hashTable* single_thread_range(lsm* tree, int from, int to)
 	    // if found pages with possible values and number of found items is lesser than expected
 	    while(page != NULL && (total_found_items < total_search_items)) {
 		// Search the disk based on possible page location
-		char* filename = getFileName(current_level);
-		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
+		char* filename = NULL;
+		getFileName(current_level, &filename);
+		run* disk_page = NULL;
+		read_a_page(filename, page->value, tree->l0->size, &disk_page);
+		free(filename);
+		filename = NULL;
 
 		search_arg* page_search_arg = malloc(sizeof(search_arg));
 		page_search_arg->range_from = from;
@@ -300,7 +317,9 @@ hashTable* single_thread_range(lsm* tree, int from, int to)
 		page_search_arg->result = result;
 
 		search_page_for_range(page_search_arg);
-		page = (linked_list*)page->next;
+		page = (linked_list*)page->next;		
+		free(disk_page);
+		disk_page = NULL;
 	    }
 	}
     }
@@ -377,10 +396,12 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 
 	// For each level, we retrieve the potential page and perform search
 	for(int level = 0; level < level_size; level++) {
-	    char* filename = getFileName(level);
+	    char* filename = NULL;
+	    getFileName(level, &filename);
 	    linked_list* page = page_num_list[level];
 	    while(page != NULL) {
-		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
+		run* disk_page = NULL;
+		read_a_page(filename, page->value, tree->l0->size, &disk_page);
 
 		// split the range and search from page
 		// calculate number of loop to complete the search
@@ -423,8 +444,13 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 		for(int count = 0; count < max_thread_count; count++) {
 		    pthread_join(search_threads[count], NULL);
 		}
+
 		page = (linked_list*)page->next;
+		free(disk_page);
+		disk_page = NULL;
 	    }
+	    free(filename);
+	    filename = NULL;
 	}
 
 	// release page_num_list memory
@@ -472,7 +498,8 @@ void* search_page_for_range(void* arguments)
 	if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
 	    int key_loc = binary_search(page->keyValue, 0, page->header.pairCount - 1, key);
 	    if(key_loc > -1) {
-		node* newNode = createNode(page->keyValue[key_loc].key, page->keyValue[key_loc].value, page->keyValue[key_loc].state);
+		node* newNode = createNode(
+		    page->keyValue[key_loc].key, page->keyValue[key_loc].value, page->keyValue[key_loc].state);
 		if(result_nodes == NULL) {
 		    result_nodes = newNode;
 		} else {
@@ -483,7 +510,7 @@ void* search_page_for_range(void* arguments)
 	    }
 	}
     }
-	args->result = NULL;
+    args->result = NULL;
     args->disk_page = NULL;
     free(args);
     return (void*)NULL;
@@ -502,22 +529,22 @@ void* deprecated_search_page_for_range(void* arguments)
     node* result_nodes = NULL;
 
     for(uint32_t i = 0; i < page->header.pairCount; i++) {
-	for(int key = from; key < to; key++) {
-	    pair item = look(result, key);
-	    // if key is not in current result and match with bloom filter
-	    if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
-		if(key == page->keyValue[i].key) {
-		    node* newNode = createNode(page->keyValue[i].key, page->keyValue[i].value, page->keyValue[i].state);
-		    if(result_nodes == NULL) {
-			result_nodes = newNode;
-		    } else {
-			result_nodes->next = (struct node*)newNode;
-			result_nodes = (node*)result_nodes->next;
-		    }
-		    add(result, newNode);
-		}
-	    }
-	}
+        for(int key = from; key < to; key++) {
+            pair item = look(result, key);
+            // if key is not in current result and match with bloom filter
+            if(item.state == UNKNOWN && contains(level, page_num, key) == TRUE) {
+                if(key == page->keyValue[i].key) {
+                    node* newNode = createNode(page->keyValue[i].key, page->keyValue[i].value, page->keyValue[i].state);
+                    if(result_nodes == NULL) {
+                        result_nodes = newNode;
+                    } else {
+                        result_nodes->next = (struct node*)newNode;
+                        result_nodes = (node*)result_nodes->next;
+                    }
+                    add(result, newNode);
+                }
+            }
+        }
     }
     args->result = NULL;
     args->disk_page = NULL;
@@ -539,8 +566,10 @@ void* search_level_for_range(void* arguments)
 
     for(int highest_page_num = max_page_num; highest_page_num >= 0; highest_page_num--) {
 	for(int key = from; key < to; key++) {
-	    if(key >= g_lsm_fence_ptr[level].page[highest_page_num].min &&
-	        key <= g_lsm_fence_ptr[level].page[highest_page_num].max) {
+	    if((key > g_lsm_fence_ptr[level].page[highest_page_num].min &&
+	           key < g_lsm_fence_ptr[level].page[highest_page_num].max) ||
+	        key == g_lsm_fence_ptr[level].page[highest_page_num].min ||
+	        key == g_lsm_fence_ptr[level].page[highest_page_num].max) {
 		if(contains(level, highest_page_num, key) == TRUE) {
 		    linked_list* newList = (linked_list*)malloc(sizeof(linked_list));
 		    newList->value = highest_page_num;
@@ -580,16 +609,23 @@ void printTree(lsm* tree)
 
     for(uint32_t j = 0; j < tree->max_level; j++) {
 	printf("Level %d:\n", j + 1);
-	char* filename = getFileName(j);
+	char* filename = NULL;
+	getFileName(j, &filename);
 	for(uint32_t k = 0; k < g_lsm_fence_ptr[j].curr_page_size; k++) {
-	    run* page = read_a_page(filename, k, tree->l0->size);
+	    run* page = NULL;
+	    read_a_page(filename, k, tree->l0->size, &page);
 	    printf("\tPage %d: ", k);
 	    for(uint32_t l = 0; l < page->header.pairCount; l++) {
 		printf("[%d:%d:V/I=%c]\t", page->keyValue[l].key, page->keyValue[l].value,
 		    convert_bucket_state_to_char((int)page->keyValue[l].state));
 	    }
+		
 	    printf("\n");
+	    free(page);
+	    page = NULL;
 	}
+	free(filename);
+	filename = NULL;
 	printf("\n");
     }
     for(uint32_t level = 0; level < tree->max_level; level++) {

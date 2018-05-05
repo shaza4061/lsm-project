@@ -4,14 +4,11 @@
 #include "lsm.h"
 #include "test.h"
 
-// This code is designed to test the correctness of your implementation.
-// You do not need to significantly change it.
-// Compile and run it in the command line by typing:
-// make test; ./test
+// This code is designed to test the correctness of  implementation.
 
-int mainW()
+int main()
 {
-    int run_size = 5;
+    int run_size = 10;
     int level_ratio = 3;
     int level_size = 6;
 	int thread_size = SINGLE_THREAD;

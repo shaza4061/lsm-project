@@ -20,6 +20,7 @@
 typedef struct lsm_t {
 	hashTable* l0;
 	uint32_t max_level;
+	uint32_t current_level;
 	uint32_t max_thread;
 } lsm;
 

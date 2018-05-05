@@ -98,6 +98,7 @@ void runTest(lsm* tree)
 
     for(int i = 0; i < num_tests; i += 1) {
 	keyType target_key = keys[i];
+	printf("Erasing key %d\n",target_key);
 	erase(tree, target_key);
 	pair value = get(tree, target_key);
 	if(value.state == VALID) {

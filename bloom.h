@@ -24,6 +24,7 @@ typedef struct bloom_filter_bitmap_t {
 typedef struct bloom_filter_t {
 	bloom_filter_bitmap* page;
 	int filter_size;
+	uint32_t max_page_size;
 } bloom_filter;
 
 bloom_filter *g_bloom_filter_ptr;
