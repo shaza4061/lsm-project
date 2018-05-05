@@ -10,5 +10,6 @@ static const char READ_BINARY[] = "rb";
 static const char APPEND_BINARY[] = "ab";
 static const char LSM_FILENAME_PREFIX[] = "lsm-level-";
 static const char FILE_EXTENSION[] = ".bin";
+static const char ERROR_CLOSING_FILE[] = "Error closing file.";
 
 #endif /* CONSTANT_H */

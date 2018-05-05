@@ -136,13 +136,12 @@ int main(int argc, char** argv)
 	printf("Thread count:%d\n", thread_size);
 	printf("Bloom False Positive Rate:%.2f%%\n", false_positive_rate * 100);
 	printf("**************************\n");
-    }
-
-    if(!silent_mode)
 	printf("Initializing...");
+    }
+	
     tree = createLSMTree(run_size, level_size, level_ratio, thread_size, false_positive_rate);
     if(!silent_mode)
-	printf("Completed\n\n");
+	printf("Completed\n");
     char command[50] = "";
     int chr;
 
@@ -154,7 +153,6 @@ int main(int argc, char** argv)
 	    command[cols] = chr;
 	}
 	command[cols] = '\0';
-	//	printf("Command :%s\n", command);
 	parse_command(command);
     } while(strcmp(command, "q"));
 
@@ -262,7 +260,7 @@ void parse_command(char command[])
 	t = clock() - t;
 	double time_taken = ((double)t) / CLOCKS_PER_SEC; // in seconds
 	if(!silent_mode) {
-	    printf("%d keys loaded\n", count);
+	    printf("%d keys loaded\n", count-1);
 	    printf("Completed in %f seconds\n", time_taken);
 	}
 	break;
