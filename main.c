@@ -11,9 +11,9 @@ lsm* tree = NULL;
 int silent_mode = 0;
 int main(int argc, char** argv)
 {
-    int run_size = DEFAULT_BUCKET_SIZE;
-    int level_ratio = DEFAULT_LSM_LEVEL_RATIO;
-    int level_size = DEFAULT_LSM_LEVEL;
+    int run_size = 127;
+    int level_ratio = 2;
+    int level_size = 22;
     int thread_size = DEFAULT_THREAD_SIZE;
     double false_positive_rate = DEFAULT_FALSE_POSITIVE_RATE;
     int c;

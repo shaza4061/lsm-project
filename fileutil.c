@@ -26,13 +26,13 @@ void getFileName(uint32_t level_n,char** filename)
     strncat(*filename, level,strlen(level));
     strncat(*filename, FILE_EXTENSION,strlen(FILE_EXTENSION));
 }
-void read_a_page(char* filename, uint32_t pageNum, uint32_t run_size,run** page)
+run* read_a_page(char* filename, uint32_t pageNum, uint32_t run_size)
 {
     FILE* read_ptr;
     long offset = (sizeof(runHeader) + sizeof(pair) * run_size) * pageNum;
 
-    *page = (run*)malloc(sizeof(run));
-    (*page)->keyValue = calloc(run_size, sizeof(*((*page)->keyValue)));
+    run* page = (run*)malloc(sizeof(run));
+    page->keyValue = calloc(run_size, sizeof(*(page->keyValue)));
 
     read_ptr = fopen(filename, READ_BINARY);
     if(read_ptr == NULL) {
@@ -41,14 +41,14 @@ void read_a_page(char* filename, uint32_t pageNum, uint32_t run_size,run** page)
     }
 
     fseek(read_ptr, offset, SEEK_SET);
-    fread(&((*page)->header), sizeof(runHeader), 1, read_ptr);
-    fread((*page)->keyValue, sizeof(pair), (*page)->header.pairCount, read_ptr);
+    fread(&page->header, sizeof(runHeader), 1, read_ptr);
+    fread(page->keyValue, sizeof(pair), page->header.pairCount, read_ptr);
 
     if(fclose(read_ptr)) {
 	printf("error closing file.");
 	exit(EXIT_FAILURE);
     }
-//    return page;
+    return page;
 }
 
 void initFencePtr(int level) {
@@ -80,8 +80,7 @@ void merge_level(int fromLevel, int toLevel, uint32_t run_size)
     }
 
     for(uint32_t i = 0; i < g_lsm_fence_ptr[fromLevel].curr_page_size; i++) {	
-	run* page = NULL;
-	read_a_page(fromFileName, i, run_size,&page);
+	run* page = read_a_page(fromFileName, i, run_size);
 	fwrite(&page->header, sizeof(runHeader), 1, write_ptr);
 	fflush(write_ptr);
 	fwrite(page->keyValue, sizeof(pair), (int)page->header.pairCount, write_ptr);

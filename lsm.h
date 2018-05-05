@@ -70,5 +70,4 @@ void* search_level_for_range(void* arguments);
 void* search_page_for_range(void* arguments);
 pair slow_get(lsm* tree, int32_t key);
 pair get(lsm* tree, int32_t key);
-//void* deprecated_search_page_for_range(void* arguments)
 #endif /* LSM_H */

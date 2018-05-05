@@ -83,8 +83,7 @@ pair slow_get(lsm* tree, int32_t key)
 			if(contains(level_n, page_num, key) == TRUE) {
 			    char* filename = NULL;
 			    getFileName(level_n, &filename);
-			    run* page = NULL;
-			    read_a_page(filename, page_num, tree->l0->size, &page);
+			    run* page = read_a_page(filename, page_num, tree->l0->size);
 			    for(uint32_t i = 0; i < page->header.pairCount; i++) {
 				if(key == page->keyValue[i].key) {
 				    value.key = page->keyValue[i].key;
@@ -298,8 +297,7 @@ hashTable* single_thread_range(lsm* tree, int from, int to)
 		// Search the disk based on possible page location
 		char* filename = NULL;
 		getFileName(current_level, &filename);
-		run* disk_page = NULL;
-		read_a_page(filename, page->value, tree->l0->size, &disk_page);
+		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
 		free(filename);
 		filename = NULL;
 
@@ -395,8 +393,7 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
 	    getFileName(level, &filename);
 	    linked_list* page = page_num_list[level];
 	    while(page != NULL) {
-		run* disk_page = NULL;
-		read_a_page(filename, page->value, tree->l0->size, &disk_page);
+		run* disk_page = read_a_page(filename, page->value, tree->l0->size);
 
 		// split the range and search from page
 		// calculate number of loop to complete the search
@@ -575,8 +572,7 @@ void printTree(lsm* tree)
 	    for(uint32_t k = 0; k < g_lsm_fence_ptr[j].curr_page_size; k++) {
 		char* filename = NULL;
 		getFileName(j, &filename);
-		run* page = NULL;
-		read_a_page(filename, k, tree->l0->size, &page);
+		run* page = read_a_page(filename, k, tree->l0->size);
 		printf("\tPage %d: ", k);
 		for(uint32_t l = 0; l < page->header.pairCount; l++) {
 		    printf("[%d:%d:V/I=%c]\t", page->keyValue[l].key, page->keyValue[l].value,

@@ -28,7 +28,7 @@ typedef struct level_data_path_t {
 
 
 void getFileName(uint32_t level_n,char** filename);
-void read_a_page(char *filename,uint32_t pageNum, uint32_t run_size,run** page);
+run* read_a_page(char* filename, uint32_t pageNum, uint32_t run_size);
 void merge_level(int fromLevel, int toLevel, uint32_t run_size);
 int append_to_file(char* filename,runHeader header, node* list);
 void data_path_add(int from_level, int to_level, char path[]);
