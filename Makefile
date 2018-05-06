@@ -1,14 +1,14 @@
-CC=gcc -std=c99
+CC=gcc -std=gnu99
 CFLAGS = -ggdb3 -W -Wall -Wextra -Werror -O0
-LDFLAGS =
-LIBS = 
+LDFLAGS = -pthread
+LIBS = -lm
 
 default: main test benchmark
 
 %.o: %.c %.h
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-main: main.o bloom.o fileutil.o hashlib.o hasht.o lsm.o node.o 
+lsm-tree: main.o bloom.o fileutil.o hashlib.o hasht.o lsm.o node.o 
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 
