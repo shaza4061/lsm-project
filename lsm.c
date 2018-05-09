@@ -231,7 +231,7 @@ runHeader merge_sort(node** buckets, int size, node** result)
 	}
     }
     *result = head;
-    header.pairCount = count;
+    header.pairCount = size;
     header.min = head->keyValue.key;
     header.max = tail->keyValue.key;
 
