@@ -12,6 +12,7 @@ typedef struct runHeader_t {
 	uint32_t pairCount;
 	int32_t min;
 	int32_t max;
+	int32_t run_size;
 } runHeader;
 
 typedef struct run_t {
