@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     int c;
     opterr = 0;
 
-    while((c = getopt(argc, argv, "sb:l:r:t:d:f:")) != -1)
+    while((c = getopt(argc, argv, "hsb:l:r:t:d:f:")) != -1)
 	switch(c) {
 	case 'd': {
 	    data_path_init();
@@ -125,8 +125,20 @@ int main(int argc, char** argv)
 	    else
 		fprintf(stderr, "Unknown option character `\\x%x'.\n", optopt);
 	    return 1;
+	case 'h':
+	printf( "Usage: \n"
+        "-b <size of Level 0 hash table>\n"
+        "-l <LSM-tree maximum height>\n"
+        "-r <level ratio>\n"
+        "-d <{r,s,+}=<data file location> (r = level range, e.g r1-2. s = single level, e.g. s1.+ = starting from this level, e.g. +1)\n"
+        "-f <bloom filter false positive rate. must be between 0-1>\n"
+        "-s (silent mode)\n"
+        "-t (number of thread for range operation)\n"
+        "-h (this help)\n"
+        );
+		exit(0);
 	default:
-	    abort();
+		    abort();
 	}
     if(!silent_mode) {
 	printf("**************************\n");

@@ -135,12 +135,12 @@ int append_to_file(char* filename, runHeader header, node* list)
 	    addToBloom(LSM_L1, g_lsm_fence_ptr[LSM_L1].curr_page_size, cursor->keyValue.key);
 	    cursor = (node*)cursor->next;
 	}
-	if(header.pairCount < header.run_size) {
+	if((int)header.pairCount < header.run_size) {
 	    // pad the data
 	    int padding = g_lsm_fence_ptr[LSM_L1].curr_page_size - header.run_size;
 	    for(int i = 0; i < padding; i++) {
-		pair *dummy = createNode(0,0,INVALID);
-		fwrite(dummy, sizeof(pair), 1, write_ptr);
+		node *dummy = createNode(0,0,INVALID);
+		fwrite(&dummy->keyValue, sizeof(pair), 1, write_ptr);
 		fflush(write_ptr);
 	    }
 	}

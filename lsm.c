@@ -262,7 +262,7 @@ hashTable* single_thread_range(lsm* tree, int from, int to)
     int total_found_items = 0;
     int level_size = tree->max_level;
     // init hashtable to store result
-    hashTable* result = createTable(total_search_items);
+    hashTable* result = createTable(tree->l0->size);
     // Search in memory first
     for(int32_t key = from; key < to; key++) {
 	pair value = look(tree->l0, key);
@@ -329,7 +329,7 @@ hashTable* multi_thread_range(lsm* tree, int from, int to)
     int total_found_items = 0;
     int max_thread_count = (int)tree->max_thread;
     // init hashtable to store result
-    hashTable* result = createTable(total_search_items);
+    hashTable* result = createTable(tree->l0->size);
     // Search in memory first
     for(int32_t key = from; key < to; key++) {
 	pair value = look(tree->l0, key);
