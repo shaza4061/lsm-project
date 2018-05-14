@@ -5,10 +5,47 @@ LSM-tree implementation using hash table
 make clean; make lsm-tree;
 
 # Running
-./lsm-tree 
-or
-You can now run the following to see all available options:
-./lsm-tree -h
+    ./lsm-tree  
+or  
+You can now run the following to see all available options:  
+    ./lsm-tree -h
+
+## Usage  
+You can start the lsm-tree with following options:  
+    -b <size of Level 0 hash table>  
+    -l <LSM-tree maximum height>  
+    -r <level ratio>    
+    -d <{r,s,+}=<data file location> (r = level range, e.g r1-2. s = single level, e.g. s1.+ = starting from this level, e.g. +1)  
+    -f <bloom filter false positive rate. must be between 0-1>  
+    -s (silent mode)  
+    -t (number of thread for range operation)  
+    -h (this help)  
+
+### Example
+
+1. Start lsm-tree with 127 items as the initial buffer size and maximum level 10
+> ./lsm-tree -b 127 -l 10
+
+2. Start lsm-tree with level ratio 4
+> ./lsm-tree -r 2
+
+3. Start lsm-tree and specify the location of the data file for all level to /var/data
+> ./lsm-tree -d +1=/var/data/
+
+4. Start lsm-tree and specify the location of the data file for level 1 to /mnt/ramdisk and all other level starting from level 2 to /var/data
+> ./lsm-tree -d s1=/mnt/ramdisk,+2=/var/data/
+
+5. Start lsm-tree and specify the location of the data file for level 1 and 2 to /mnt/ramdisk and all other level starting from level 3 to /var/data
+> ./lsm-tree -d r1-2=/mnt/ramdisk,+3=/var/data/
+
+6. Start lsm-tree with bloom filter false-positive-ratio set to 4%
+> ./lsm-tree -f 0.04
+
+7. Start lsm-tree with 4 threads (multi-threading is only available for *get* and *range* queries)
+> ./lsm-tree -t 4
+
+8. Start the lsm-tree in silent mode (useful for testing)
+> ./lsm-tree -s
 
 # Supported command
 The upport six commands: put, get, range, delete, load, and print stats. Each command is explained in greater detail below.
