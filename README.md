@@ -24,9 +24,9 @@ The 'p' indicates that this is a put command with key INT1 and value INT2.
 
 #### Example:
 
-> p 10 7
-> p 63 222
-> p 10 5
+    p 10 7
+    p 63 222
+    p 10 5
 
 First the key 10 is added with value 7. Next, key 63 is added with value 222. The tree now holds two pairs. Finally, the key 10 is updated to have value 5. Note that the tree logically still holds only two pairs. These instructions include only puts therefore no output is expected.
 
@@ -41,18 +41,18 @@ The 'g' indicates that this is a get for key INT1. The current value should be p
 
 #### Example:
 
-> p 10 7
-> p 63 222
-> g 10
-> g 15
-> p 15 5
-> g 15
+    p 10 7
+    p 63 222
+    g 10
+    g 15
+    p 15 5
+    g 15
 
 output:
 
-> 7
-> 
-> 5
+    7
+    
+    5
 
 Here we first put (key:value) 10:7, then 63:222. The next instruction is a get for key 10, so the system outputs 7, the current value of key 10. Next we try to get key 15 but it is not included in the tree yet so a blank line is generated in the output. Next we put 15:5. Finally, we get key 15 again. This time it outputs 5 as the key exists at this point in the instruction list.
 
@@ -67,45 +67,45 @@ The 'r' indicates that this is a range request for all the keys from INT1 inclus
 
 #### Example:
 
-> p 10 7
-> p 13 2
-> p 17 99
-> p 12 22
-> r 10 12
-> r 10 15
-> r 14 17
-> r 0 100
+    p 10 7
+    p 13 2
+    p 17 99
+    p 12 22
+    r 10 12
+    r 10 15
+    r 14 17
+    r 0 100
 
 output:
 
-> 10:7
-> 10:7 12:22 13:2
-> 
-> 10:7 12:22 13:2 17:99
+    10:7
+    10:7 12:22 13:2
+    
+    10:7 12:22 13:2 17:99
 
 ## Delete
 The delete command will remove a single key-value pair from the LSM tree.
 
 #### Syntax
 
-> d [INT1]
+    d [INT1]
 
 The 'd' indicates that this is a delete command for key INT1 and its associated value (whatever that may be). A delete of a non-existing key has no effect.
 
 #### Example:
 
-> p 10 7
-> p 12 5
-> g 10
-> d 10
-> g 10
-> g 12
+    p 10 7
+    p 12 5
+    g 10
+    d 10
+    g 10
+    g 12
 
 output:
 
-> 7
-> 
-> 5
+    7
+    
+    5
 
 First the two pairs 10:7 and 12:5 are put into the tree. Next, we get key 10 which outputs the value 7. Key 10 is then deleted which generates no output. When we then try to get key 10 a second time we get a blank as the key has been deleted. Finally we get key 12 which is unaffected by the delete and therefore outputs the value 5.
 
