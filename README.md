@@ -59,6 +59,33 @@ You can start the lsm-tree with following options:
 8. Start the lsm-tree in silent mode (useful for testing)
 > ./lsm-tree -s
 
+# Running workload demo
+
+1. The lsm-tree supports redirection. To run the sample workload, you can run below command to load the small workload file:  
+
+> make clean
+> make lsm-tree  
+> ./lsm-tree < demo/small_workload_demo.txt 
+
+or below command to load the big workload file (100k puts and 50k gets)  
+
+> make clean
+> make lsm-tree  
+> ./lsm-tree < demo/1_2_read_write_ratio.txt
+
+2. The lsm tree also can load data from binary file (below example will load 1k keys into the tree and print the tree stats)  
+
+> make clean
+> make lsm-tree  
+> ./lsm-tree < demo/load_binary_file.txt
+
+3. Below example run the demo for range operation.
+
+> make clean
+> make lsm-tree  
+> ./lsm-tree < demo/range_workload.txt
+
+
 # Supported command
 The upport six commands: put, get, range, delete, load, and print stats. Each command is explained in greater detail below.
 

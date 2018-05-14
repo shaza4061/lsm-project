@@ -1,0 +1,4 @@
+l demo/1k.dat
+s
+q
+

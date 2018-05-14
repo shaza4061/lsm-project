@@ -220,10 +220,10 @@ void parse_command(char command[])
 	    pair item = look(result, key);
 	    if(item.state != INVALID && item.state != UNKNOWN)
 		if(!silent_mode) {
-		    printf("%d:%d", item.key, item.value);
-		    printf("\n");
+		    printf("%d:%d ", item.key, item.value);		    
 		}
 	}
+	if(!silent_mode) printf("\n");
 	for(int i = 0; i < (int)result->size; i++) {
 	    if(result->bucket[i] != NULL) {
 		node* current = result->bucket[i];
