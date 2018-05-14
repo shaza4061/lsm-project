@@ -2,16 +2,28 @@
 LSM-tree implementation using hash table
 
 # Building
-make clean; make lsm-tree;
+    make clean; make lsm-tree;
 
-# Running
+# Running tests
+1. Running test for single-thread lsm-tree  
+> make clean; make test_singlethreaded_lsm;./test_singlethreaded_lsm;
+
+2. Running test for multi-thread lsm-tree  
+> make clean; make test_multithreaded_lsm; ./test_multithreaded_lsm;
+
+3. Running test for multi-thread range operation
+> make clean; make test_multi_thread_range; ./test_multi_thread_range;
+
+# Running the program
     ./lsm-tree  
 or  
 You can now run the following to see all available options:  
+
     ./lsm-tree -h
 
 ## Usage  
 You can start the lsm-tree with following options:  
+
     -b <size of Level 0 hash table>  
     -l <LSM-tree maximum height>  
     -r <level ratio>    
